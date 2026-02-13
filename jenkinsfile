@@ -1,20 +1,47 @@
 pipeline {
-  agent {
-    docker {
-      image 'node:18'
+    agent {
+        docker {
+            image 'mcr.microsoft.com/playwright:v1.41.0-jammy'
+            args '--ipc=host'
+        }
     }
-  }
 
-  stages {
-    stage('Install') {
-      steps {
-        sh 'npm install'
-      }
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git(
+                    url: 'https://github.com/theuntoldcreator/qa-automation.git',
+                    credentialsId: 'github-https-token',
+                    branch: 'main'
+                )
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npx playwright test --reporter=html'
+            }
+        }
     }
-    stage('Test') {
-      steps {
-        sh 'npx playwright test'
-      }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+            publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'playwright-report',
+                reportFiles: 'index.html',
+                reportName: 'Playwright Report'
+            ])
+        }
     }
-  }
 }
