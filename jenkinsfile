@@ -1,0 +1,11 @@
+Pipeline{
+    Agent any
+    Stages('Checkout'){
+        Steps()
+    }
+    Stages('Deploy'){
+    }
+    Stages('Test'){
+        Steps()
+    }
+}
